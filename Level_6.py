@@ -26,4 +26,47 @@ else:
 
 #28
 
+weight = int(input("Enter your weight: "))
+height = int(input("Enter your height: "))
+
+BMI = (weight / height**2)
+
+if BMI < 20:
+    print("you are underweight")
+elif 20< BMI < 40:
+    print("you are normal")
+elif 40< BMI < 100:
+    print("you are overweight")
+else:
+    print("you are not eligible")
+
+
+
+#29 Write a program to check eligibility for loan based on salary and credit score.
+
+
+salary = int(input("Enter your salary: "))
+credits = int(input("Enter your credits: "))
+
+if salary > 50000 and  credits > 90:
+    print("you are eligible for loan")
+else:
+    print("you are not eligible for loan")
+
+# Write a program to build a traffic light system.
+
+
+light = "green"
+
+if light == "green":
+     print("go")
+elif light == "red":
+    print("stop")
+elif light == "yrllow":
+    print("slow")
+else:
+    print("wrong color")
+
+
+
 
