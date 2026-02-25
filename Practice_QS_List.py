@@ -163,5 +163,73 @@ print(user)
 
 #27  Replace the second element of a list with a new value.
 
-list8 = [23,56,87,3,23,8,3]
-list8.remove
+list8 = [23,56,87,3,23,8,9]
+list8[1] = 88
+print(list8)
+
+#28 Swap first and last elements of a list.
+
+list9 = [3,657,56,467,45,74]
+list9[0], list9[-1] = list9[-1], list9[0]
+print(list9)
+
+#29 Find the second largest number in a list.
+
+list10 = [23,65,3275,3354,63433,56]
+list10.sort()
+print(list10[-2])
+
+# 30  Check if a list is a palindrome.
+
+list11 = [1,2,1]
+lst = (list11[::-1])
+print(lst)
+print(list11)
+print("it is Palindrome",list11 == lst)
+
+# Level 6
+#  Mini Practical Tasks
+
+#31  Grocery List Program ,Add items ,Remove items ,Display total number of items
+grocery12 = ["apple", "banana","orange","milk"]
+grocery12.append("chocolate")
+grocery12.append("cherry")
+grocery12.remove("chocolate")
+print(grocery12)
+
+#32 Student Marks System, Store marks in a list,  Find average, Find highest and lowest
+
+marks12 = []
+m = int(input("enter a marks:" ))
+n = int(input("enter a marks:"))
+o = int(input("enter a marks:"))
+marks12.append(m)
+marks12.append(n)
+marks12.append(o)
+
+print(marks12)
+print("Average",(m + n + o)/3)
+
+if m>n and m>o:
+    print("m is greater")
+elif n>m and n>o:
+    print("n is greater")
+else:
+    print("o is greater")
+
+
+#33Shopping Cart ,Add item prices, Calculate total bill, Remove item price if needed
+
+cart =[]
+cart.append(23)
+cart.append(34)
+cart.append(343)
+
+bill = (cart[0]+ cart[1]+ cart[2])
+
+if bill > 150:
+    cart.remove(34)
+    print(cart)
+else:
+    print("no need")
+
