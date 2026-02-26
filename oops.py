@@ -151,3 +151,68 @@ c.skill2()
 c1 = Child1()
 c1.skill1()
 c1.skill2()
+
+
+
+# Encapsulation
+
+# private Variable
+
+# class Bank:
+#     def __init__(self,balance):
+#         self.__balance = balance
+#     def set__balance(self,amount):
+#         if amount<0:
+#             print("Invalid Input")
+#         else:
+#             self.__balance += amount
+#
+#     def get__balance(self):
+#         return self.__balance
+# Account = Bank(20000)
+# print(Account.get__balance())
+# Account1 = Bank(10000)
+# print(Account1.get__balance())
+
+#
+# class Bank:
+#     def __init__(self,name,balance):
+#         self.__name = name
+#         self.__balance = balance
+#     def set__balance(self,amount):
+#         if amount<0:
+#             print("Invalid Input")
+#         else:
+#             self.__balance += amount
+#     def withdraw(self. amount):
+#     if amount < 0:
+#             print("Invalid Input")
+#
+#     def get__balance(self):
+#         return self.__balance
+# Account = Bank(20000)
+# print(Account.get__balance())
+# Account1 = Bank(10000)
+# print(Account1.get__balance())
+
+
+# Abstraction
+
+from abc import ABC,abstractmethod
+
+class Car(ABC):
+    @abstractmethod
+    def start(self):
+        pass
+    @abstractmethod
+    def stop(self):
+        pass
+
+class Ford(Car):
+    def start(self):
+        print("car Started")
+    def stop(self):
+        print("car stopped")
+c1 = Ford()
+c1.start()
+c1.stop()
