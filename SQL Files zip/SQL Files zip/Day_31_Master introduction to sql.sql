@@ -96,8 +96,9 @@
 -- =============================================================================
 
 -- SYNTAX:
--- SHOW DATABASES;
+SHOW DATABASES;
 -- 1code:
+
 
 
 
@@ -109,8 +110,7 @@
 -- SYNTAX:
 -- CREATE DATABASE database_name;
 -- 2code
-
-
+create database training_db;
 
 
 -- =============================================================================
@@ -122,6 +122,7 @@
 -- 3code
 
 
+use training_db;
 
 
 -- =============================================================================
@@ -131,7 +132,7 @@
 -- SYNTAX:
 -- SELECT DATABASE();
 -- 4code
-
+select database();
 
 
 
@@ -143,7 +144,7 @@
 -- SYNTAX:
 -- CREATE DATABASE database_name;
 -- 5code
-
+create database company_db;
 
 
 -- =============================================================================
@@ -153,6 +154,7 @@
 -- SYNTAX:
 -- USE database_name;
 -- 6code 
+use company_db;
 
 
 
@@ -162,7 +164,7 @@
 
 -- SYNTAX:
 -- DROP DATABASE database_name;
-
+DROP DATABASE training_db;
 -- WARNING:
 -- DROP permanently deletes the database and all data
 -- 7code
@@ -203,12 +205,13 @@
 
 -- TASK 1:
 -- Create a database named student_db
-
+create database student_db;
 -- TASK 2:
 -- Switch to student_db
 
 -- TASK 3:
 -- Verify current database using SELECT DATABASE();
 
+select database();
 
 
