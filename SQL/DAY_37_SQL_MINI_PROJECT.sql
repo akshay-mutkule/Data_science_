@@ -31,11 +31,11 @@
 -- To isolate project data and avoid confusion with other databases.
 
 -- code 1 
-
+CREATE DATABASE IF NOT EXISTS student_db;
 
 -- code 2
 
-
+use student_db;
 
 -- ============================================================================
 -- STEP 2: ER DESIGN THINKING (VERY IMPORTANT)
@@ -67,6 +67,10 @@
 
 -- code3
 
+CREATE TABLE departments(
+dept_id int PRIMARY KEY ,
+dept_name varchar(40) not null);
+
 
 -- --------------------
 -- STUDENTS TABLE
@@ -75,6 +79,12 @@
 -- To ensure students belong only to valid departments
 
 -- code4
+
+create table students(
+student_id int primary key,
+student_name varchar(40) not null,
+dept_id int,
+foreign key (dept_id) references departments(dept_id));
 
 
 
@@ -90,6 +100,9 @@
 
 -- code5
 
+create table courses(
+course_id int primary key,
+course_name varchar(40)not null);
 
 
 
@@ -103,8 +116,15 @@
 
 -- code6
 
-
-
+CREATE TABLE enrollments(
+enrollment_id int primary key,
+ 
+student_id INT,
+course_id int,
+marks int,
+enrollment_date date,
+   FOREIGN KEY (student_id) REFERENCES students(student_id),
+    FOREIGN KEY (course_id) REFERENCES courses(course_id));
 
 
 -- ============================================================================
@@ -118,8 +138,25 @@
 
 
 
+INSERT INTO departments VALUES
+(1, 'Computer Engineering'),
+(2, 'Mechanical Engineering'),
+(3, 'Electronics Engineering');
 
+INSERT INTO students VALUES
+(101, 'Rahul', 1),
+(102, 'Sneha', 1),
+(103, 'Amit', 2);
 
+INSERT INTO courses VALUES
+(201, 'Database Management'),
+(202, 'Data Structures'),
+(203, 'Thermodynamics');
+
+INSERT INTO enrollments VALUES
+(1, 101, 201, 88, '2026-01-10'),
+(2, 102, 202, 92, '2026-01-15'),
+(3, 103, 203, 76, '2026-01-11');
 
 
 
@@ -133,27 +170,46 @@
 
 -- code8
 
-
+SELECT d.dept_name,
+       COUNT(s.student_id) AS total_students
+FROM departments d
+LEFT JOIN students s
+ON d.dept_id = s.dept_id
+GROUP BY d.dept_name;
 
 -- ❓ QUESTION 2:
 -- Which courses are most popular?
 
 -- code9
 
-
+SELECT c.course_name,
+       COUNT(e.student_id) AS total_enrollments
+FROM courses c
+JOIN enrollments e
+ON c.course_id = e.course_id
+GROUP BY c.course_name
+ORDER BY total_enrollments DESC;
 -- ❓ QUESTION 3:
 -- Show student names along with their department names
 
 -- code10
 
-
+SELECT s.student_name, d.dept_name
+FROM students s
+JOIN departments d
+ON s.dept_id = d.dept_id;
 
 -- ❓ QUESTION 4:
 -- What is the average marks scored in each course?
 
 -- code11
 
-
+SELECT c.course_name,
+       AVG(e.marks) AS avg_marks
+FROM courses c
+JOIN enrollments e
+ON c.course_id = e.course_id
+GROUP BY c.course_name;
 
 -- ❓ QUESTION 5:
 -- Which students scored more than 85 marks and in which course?
@@ -161,7 +217,11 @@
 -- code12
 
 
-
+SELECT s.student_name, c.course_name, e.marks
+FROM students s
+JOIN enrollments e ON s.student_id = e.student_id
+JOIN courses c ON e.course_id = c.course_id
+WHERE e.marks > 85;
 
 
 
