@@ -1,5 +1,6 @@
 -- =============================================================================
 -- DAY 32: DATA DEFINITION LANGUAGE (DDL)
+show databases;
 
 -- Tool: MySQL Workbench
 -- Goal: Learn how to design tables and apply rules on data
@@ -71,7 +72,7 @@
 -- USE database_name;
 -- 1code
 
-
+use company_db;
 
 -- =============================================================================
 -- SECTION 5: DATA TYPES
@@ -81,6 +82,7 @@
 -- BIGINT    -> Large numbers
 -- VARCHAR   -> Text values
 -- DATE      -> Date values
+-- CHAR      -> Only add the character values
 
 -- Example:
 -- emp_id INT
@@ -103,12 +105,29 @@
 
 -- Example: Create Departments Table
 -- 2code
+CREATE TABLE departments(
+dept_id INT PRIMARY KEY,
+dept_name VARCHAR(50) UNIQUE
+);
+
+SELECT * FROM departments;
+
 
 
 
 -- Example: Create Employees Table
 -- 3code
-
+CREATE TABLE employees(
+emp_id INT PRIMARY KEY,
+emp_name VARCHAR(50) NOT NULL,
+dept_id INT,
+salary INT,
+joining_date DATE,
+FOREIGN KEY (dept_id) references departments(dept_id)
+);
+SELECT *from employees;
+ALTER TABLE employees ADD email VARCHAR(100);
+SELECT *from employees;
 -- =============================================================================
 -- SECTION 7: ALTER TABLE
 -- =============================================================================
@@ -143,7 +162,7 @@
 -- SYNTAX:
 -- ALTER TABLE table_name MODIFY column_name new_datatype;
 -- 5code (Change the salary datatype from int to Bigint)
-
+ALTER TABLE employees MODIFY salary BIGINT;
 
 
 -- ----------------------------
@@ -154,6 +173,8 @@
 -- ALTER TABLE table_name DROP column_name;
 -- 6code (Drop email column)
 
+ALTER TABLE employees DROP email;
+select * from employees;
 
 
 -- =============================================================================
@@ -161,7 +182,8 @@
 -- =============================================================================
 
 -- TRUNCATE removes all rows but keeps table structure
-
+TRUNCATE TABLE employees;
+SELECT * FROM employees;
 -- SYNTAX:
 -- TRUNCATE TABLE table_name;
 -- 7code
@@ -177,8 +199,8 @@
 -- SYNTAX:
 -- RENAME TABLE old_name TO new_name;
 -- 8code (Rename employees to Staff)
-
-
+RENAME TABLE employees TO staff;
+SELECT * FROM staff;
 
 
 
@@ -191,7 +213,7 @@
 -- SYNTAX:
 -- DROP TABLE table_name;
 -- 9code (Drop Staff table)
-
+DROP TABLE staff;
 
 
 
@@ -223,7 +245,11 @@
 
 -- SYNTAX:
 -- 10code
+CREATE TABLE students(
+std_id INT PRIMARY KEY,
+std_name VARCHAR(50));
 
+select * FROM students;
 
 
 -- Few Invalid Example while entering the entries in columns (Duplicate Key):
@@ -258,7 +284,9 @@
 -- SYNTAX:
 -- 12code (Set email ids to be unique )
 
-
+CREATE TABLE users(
+user_id INT PRIMARY KEY,
+email VARCHAR(50)UNIQUE);
 -- Invalid Example:
 -- INSERT INTO users VALUES (1,'test@gmail.com');
 -- INSERT INTO users VALUES (2,'test@gmail.com');
@@ -277,12 +305,16 @@
 -- 13code
 
 -- Parent table : (Primary key )
-
+CREATE TABLE users1(
+user_id INT PRIMARY KEY,
+email VARCHAR(50)UNIQUE);
 
 -- Child Table :(Foreign key)
 
-
-
+CREATE TABLE orders(
+order_id INT PRIMARY KEY,
+cust_id INT NOT null,
+user_id int unique);
 -- Primary Key → Uniquely identifies a record in the same table
 -- Foreign Key → Connects one table to another table
 -- orders.customer_id depends on users.user_id
@@ -331,9 +363,15 @@
 -- Task 1:
 -- Create students table with PRIMARY KEY and NOT NULL
 
+CREATE TABLE students(
+std_id INT PRIMARY KEY,
+std_name VARCHAR(50),
+std_class varchar(50));
 -- Task 2:
 -- Create courses table with UNIQUE column
-
+CREATE TABLE courses(
+course_id INT PRIMARY KEY,
+course_name varchar(50));
 -- Task 3:
 -- Create users and orders table using FOREIGN KEY
 
