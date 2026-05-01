@@ -1,0 +1,243 @@
+import random
+import string
+import json
+import time
+import math
+from datetime import datetime
+
+# -----------------------------
+# UTILITY FUNCTIONS
+# -----------------------------
+
+def random_string(length=8):
+    return ''.join(random.choices(string.ascii_letters, k=length))
+
+def random_email():
+    return random_string(5) + "@example.com"
+
+def random_number(a=1, b=1000):
+    return random.randint(a, b)
+
+def random_float():
+    return round(random.uniform(0, 1000), 2)
+
+def timestamp():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# -----------------------------
+# DATA GENERATION
+# -----------------------------
+
+class DataGenerator:
+    def __init__(self, size=100):
+        self.size = size
+        self.data = []
+
+    def generate_user_data(self):
+        for _ in range(self.size):
+            user = {
+                "id": random_number(),
+                "name": random_string(),
+                "email": random_email(),
+                "age": random.randint(18, 60),
+                "balance": random_float(),
+                "created_at": timestamp()
+            }
+            self.data.append(user)
+
+    def save_to_file(self, filename="data.json"):
+        with open(filename, "w") as f:
+            json.dump(self.data, f, indent=4)
+
+    def load_from_file(self, filename="data.json"):
+        with open(filename, "r") as f:
+            self.data = json.load(f)
+
+# -----------------------------
+# DATA PROCESSING
+# -----------------------------
+
+class DataProcessor:
+    def __init__(self, data):
+        self.data = data
+
+    def average_balance(self):
+        total = sum(user["balance"] for user in self.data)
+        return total / len(self.data)
+
+    def max_balance_user(self):
+        return max(self.data, key=lambda x: x["balance"])
+
+    def min_balance_user(self):
+        return min(self.data, key=lambda x: x["balance"])
+
+    def filter_by_age(self, min_age=25):
+        return [user for user in self.data if user["age"] >= min_age]
+
+    def sort_by_balance(self):
+        return sorted(self.data, key=lambda x: x["balance"], reverse=True)
+
+# -----------------------------
+# SIMULATION ENGINE
+# -----------------------------
+
+class TransactionSimulator:
+    def __init__(self, users):
+        self.users = users
+        self.transactions = []
+
+    def simulate_transaction(self):
+        sender = random.choice(self.users)
+        receiver = random.choice(self.users)
+
+        if sender["id"] == receiver["id"]:
+            return
+
+        amount = random.uniform(1, sender["balance"])
+
+        sender["balance"] -= amount
+        receiver["balance"] += amount
+
+        txn = {
+            "from": sender["id"],
+            "to": receiver["id"],
+            "amount": round(amount, 2),
+            "time": timestamp()
+        }
+
+        self.transactions.append(txn)
+
+    def run_simulation(self, n=100):
+        for _ in range(n):
+            self.simulate_transaction()
+
+# -----------------------------
+# ANALYTICS ENGINE
+# -----------------------------
+
+class Analytics:
+    def __init__(self, users, transactions):
+        self.users = users
+        self.transactions = transactions
+
+    def total_transactions(self):
+        return len(self.transactions)
+
+    def total_volume(self):
+        return sum(txn["amount"] for txn in self.transactions)
+
+    def richest_user(self):
+        return max(self.users, key=lambda x: x["balance"])
+
+    def poorest_user(self):
+        return min(self.users, key=lambda x: x["balance"])
+
+# -----------------------------
+# LOGGING SYSTEM
+# -----------------------------
+
+class Logger:
+    def __init__(self, file="app.log"):
+        self.file = file
+
+    def log(self, message):
+        with open(self.file, "a") as f:
+            f.write(f"[{timestamp()}] {message}\n")
+
+# -----------------------------
+# CLI APPLICATION
+# -----------------------------
+
+class Application:
+    def __init__(self):
+        self.generator = DataGenerator(200)
+        self.logger = Logger()
+
+    def setup(self):
+        print("Generating data...")
+        self.generator.generate_user_data()
+        self.generator.save_to_file()
+        self.logger.log("Data generated")
+
+    def process(self):
+        processor = DataProcessor(self.generator.data)
+        avg = processor.average_balance()
+        print("Average Balance:", avg)
+        self.logger.log(f"Average balance: {avg}")
+
+    def simulate(self):
+        simulator = TransactionSimulator(self.generator.data)
+        simulator.run_simulation(500)
+        print("Simulation complete")
+        self.logger.log("Simulation executed")
+        return simulator.transactions
+
+    def analytics(self, transactions):
+        analytics = Analytics(self.generator.data, transactions)
+        print("Total Transactions:", analytics.total_transactions())
+        print("Total Volume:", analytics.total_volume())
+        print("Richest User:", analytics.richest_user())
+        print("Poorest User:", analytics.poorest_user())
+        self.logger.log("Analytics computed")
+
+    def run(self):
+        while True:
+            print("\n1. Setup Data")
+            print("2. Process Data")
+            print("3. Run Simulation")
+            print("4. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+                self.setup()
+            elif choice == "2":
+                self.process()
+            elif choice == "3":
+                txns = self.simulate()
+                self.analytics(txns)
+            elif choice == "4":
+                break
+            else:
+                print("Invalid choice")
+
+# -----------------------------
+# EXTENDED RANDOM UTILITIES
+# -----------------------------
+
+def generate_matrix(n=10):
+    return [[random.randint(1, 100) for _ in range(n)] for _ in range(n)]
+
+def matrix_sum(matrix):
+    return sum(sum(row) for row in matrix)
+
+def matrix_multiply(a, b):
+    result = [[0]*len(b[0]) for _ in range(len(a))]
+    for i in range(len(a)):
+        for j in range(len(b[0])):
+            for k in range(len(b)):
+                result[i][j] += a[i][k] * b[k][j]
+    return result
+
+# -----------------------------
+# MACHINE LEARNING MOCK
+# -----------------------------
+
+class SimpleModel:
+    def __init__(self):
+        self.weights = [random.random() for _ in range(5)]
+
+    def predict(self, features):
+        return sum(w*f for w, f in zip(self.weights, features))
+
+    def train(self):
+        for _ in range(100):
+            self.weights = [w + random.uniform(-0.1, 0.1) for w in self.weights]
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    app = Application()
+    app.run()
