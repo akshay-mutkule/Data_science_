@@ -1,0 +1,280 @@
+import random
+import string
+import json
+import time
+from datetime import datetime
+
+# -----------------------------
+# HELPERS
+# -----------------------------
+
+def rand_str(n=6):
+    return ''.join(random.choices(string.ascii_lowercase, k=n))
+
+def rand_price():
+    return round(random.uniform(10, 1000), 2)
+
+def rand_category():
+    return random.choice(["Electronics", "Clothing", "Books", "Home", "Sports"])
+
+def now():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# -----------------------------
+# PRODUCT SYSTEM
+# -----------------------------
+
+class Product:
+    def __init__(self, pid):
+        self.id = pid
+        self.name = rand_str(8)
+        self.price = rand_price()
+        self.category = rand_category()
+        self.stock = random.randint(10, 100)
+
+    def to_dict(self):
+        return self.__dict__
+
+class ProductCatalog:
+    def __init__(self, size=100):
+        self.products = []
+        for i in range(size):
+            self.products.append(Product(i))
+
+    def search(self, keyword):
+        return [p for p in self.products if keyword in p.name]
+
+    def filter_by_category(self, category):
+        return [p for p in self.products if p.category == category]
+
+    def get_random_product(self):
+        return random.choice(self.products)
+
+# -----------------------------
+# USER SYSTEM
+# -----------------------------
+
+class User:
+    def __init__(self, uid):
+        self.id = uid
+        self.name = rand_str()
+        self.balance = round(random.uniform(500, 5000), 2)
+        self.cart = []
+        self.orders = []
+
+    def add_to_cart(self, product):
+        self.cart.append(product)
+
+    def clear_cart(self):
+        self.cart = []
+
+# -----------------------------
+# ORDER SYSTEM
+# -----------------------------
+
+class Order:
+    def __init__(self, user, items):
+        self.user_id = user.id
+        self.items = items
+        self.total = sum(item.price for item in items)
+        self.time = now()
+
+    def to_dict(self):
+        return {
+            "user": self.user_id,
+            "total": self.total,
+            "items": [item.id for item in self.items],
+            "time": self.time
+        }
+
+# -----------------------------
+# SHOPPING ENGINE
+# -----------------------------
+
+class ShoppingEngine:
+    def __init__(self, users, catalog):
+        self.users = users
+        self.catalog = catalog
+        self.orders = []
+
+    def simulate_shopping(self, rounds=100):
+        for _ in range(rounds):
+            user = random.choice(self.users)
+
+            # Add random items
+            for _ in range(random.randint(1, 5)):
+                product = self.catalog.get_random_product()
+                if product.stock > 0:
+                    user.add_to_cart(product)
+
+            # Checkout
+            if user.cart:
+                order = Order(user, user.cart)
+                if user.balance >= order.total:
+                    user.balance -= order.total
+                    self.orders.append(order)
+                    user.orders.append(order)
+
+                    for item in user.cart:
+                        item.stock -= 1
+
+                user.clear_cart()
+
+# -----------------------------
+# RECOMMENDATION ENGINE
+# -----------------------------
+
+class Recommender:
+    def __init__(self, catalog):
+        self.catalog = catalog
+
+    def recommend_by_category(self, category):
+        return random.sample(
+            [p for p in self.catalog.products if p.category == category],
+            k=3
+        )
+
+    def trending_products(self):
+        return sorted(self.catalog.products, key=lambda x: x.stock)[:5]
+
+# -----------------------------
+# ANALYTICS
+# -----------------------------
+
+class Analytics:
+    def __init__(self, users, orders):
+        self.users = users
+        self.orders = orders
+
+    def total_revenue(self):
+        return sum(order.total for order in self.orders)
+
+    def total_orders(self):
+        return len(self.orders)
+
+    def top_users(self):
+        return sorted(self.users, key=lambda x: len(x.orders), reverse=True)[:5]
+
+    def avg_order_value(self):
+        if not self.orders:
+            return 0
+        return self.total_revenue() / len(self.orders)
+
+# -----------------------------
+# FILE STORAGE
+# -----------------------------
+
+class Storage:
+    @staticmethod
+    def save_orders(orders, filename="orders.json"):
+        with open(filename, "w") as f:
+            json.dump([o.to_dict() for o in orders], f, indent=4)
+
+# -----------------------------
+# REPORT SYSTEM
+# -----------------------------
+
+class Report:
+    @staticmethod
+    def print_summary(analytics):
+        print("\n--- REPORT ---")
+        print("Total Orders:", analytics.total_orders())
+        print("Total Revenue:", analytics.total_revenue())
+        print("Avg Order Value:", analytics.avg_order_value())
+        print("Top Users:", [u.name for u in analytics.top_users()])
+
+# -----------------------------
+# ADVANCED RANDOM SIMULATION
+# -----------------------------
+
+class TrafficSimulator:
+    def __init__(self):
+        self.visits = []
+
+    def simulate(self, n=1000):
+        for _ in range(n):
+            visit = {
+                "user": rand_str(),
+                "time_spent": random.randint(1, 300),
+                "clicked": random.choice([True, False])
+            }
+            self.visits.append(visit)
+
+    def conversion_rate(self):
+        clicks = sum(1 for v in self.visits if v["clicked"])
+        return clicks / len(self.visits)
+
+# -----------------------------
+# CLI APP
+# -----------------------------
+
+class App:
+    def __init__(self):
+        self.catalog = ProductCatalog(200)
+        self.users = [User(i) for i in range(50)]
+        self.engine = ShoppingEngine(self.users, self.catalog)
+        self.recommender = Recommender(self.catalog)
+
+    def run(self):
+        while True:
+            print("\n1. Simulate Shopping")
+            print("2. Show Recommendations")
+            print("3. Show Analytics")
+            print("4. Simulate Traffic")
+            print("5. Exit")
+
+            choice = input("Enter: ")
+
+            if choice == "1":
+                self.engine.simulate_shopping(200)
+                print("Shopping simulation done")
+
+            elif choice == "2":
+                cat = rand_category()
+                recs = self.recommender.recommend_by_category(cat)
+                print(f"Recommendations in {cat}:")
+                for r in recs:
+                    print(r.name, r.price)
+
+            elif choice == "3":
+                analytics = Analytics(self.users, self.engine.orders)
+                Report.print_summary(analytics)
+
+            elif choice == "4":
+                sim = TrafficSimulator()
+                sim.simulate(1000)
+                print("Conversion Rate:", sim.conversion_rate())
+
+            elif choice == "5":
+                Storage.save_orders(self.engine.orders)
+                break
+
+            else:
+                print("Invalid")
+
+# -----------------------------
+# EXTRA UTILITIES
+# -----------------------------
+
+def generate_random_graph(n=10):
+    graph = {}
+    for i in range(n):
+        graph[i] = random.sample(range(n), random.randint(1, n-1))
+    return graph
+
+def dfs(graph, start, visited=None):
+    if visited is None:
+        visited = set()
+    visited.add(start)
+    for node in graph[start]:
+        if node not in visited:
+            dfs(graph, node, visited)
+    return visited
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    app = App()
+    app.run()
