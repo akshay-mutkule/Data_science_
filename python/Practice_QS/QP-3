@@ -1,0 +1,289 @@
+import random
+import csv
+import math
+from datetime import datetime
+
+# -----------------------------
+# UTILITIES
+# -----------------------------
+
+def now():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def rand_symbol():
+    return ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=4))
+
+# -----------------------------
+# STOCK CLASS
+# -----------------------------
+
+class Stock:
+    def __init__(self, symbol):
+        self.symbol = symbol
+        self.price = round(random.uniform(50, 500), 2)
+        self.history = [self.price]
+
+    def update_price(self):
+        change = random.uniform(-5, 5)
+        self.price = max(1, round(self.price + change, 2))
+        self.history.append(self.price)
+
+# -----------------------------
+# MARKET SIMULATOR
+# -----------------------------
+
+class Market:
+    def __init__(self, size=10):
+        self.stocks = [Stock(rand_symbol()) for _ in range(size)]
+
+    def tick(self):
+        for stock in self.stocks:
+            stock.update_price()
+
+    def get_stock(self, symbol):
+        for s in self.stocks:
+            if s.symbol == symbol:
+                return s
+
+# -----------------------------
+# PORTFOLIO SYSTEM
+# -----------------------------
+
+class Portfolio:
+    def __init__(self, cash=10000):
+        self.cash = cash
+        self.holdings = {}
+        self.history = []
+
+    def buy(self, stock, qty):
+        cost = stock.price * qty
+        if self.cash >= cost:
+            self.cash -= cost
+            self.holdings[stock.symbol] = self.holdings.get(stock.symbol, 0) + qty
+            return True
+        return False
+
+    def sell(self, stock, qty):
+        if self.holdings.get(stock.symbol, 0) >= qty:
+            self.holdings[stock.symbol] -= qty
+            self.cash += stock.price * qty
+            return True
+        return False
+
+    def value(self, market):
+        total = self.cash
+        for sym, qty in self.holdings.items():
+            stock = market.get_stock(sym)
+            if stock:
+                total += stock.price * qty
+        return total
+
+# -----------------------------
+# TRADER AGENT
+# -----------------------------
+
+class Trader:
+    def __init__(self, name):
+        self.name = name
+        self.portfolio = Portfolio()
+
+    def random_strategy(self, market):
+        stock = random.choice(market.stocks)
+        action = random.choice(["buy", "sell", "hold"])
+
+        if action == "buy":
+            qty = random.randint(1, 5)
+            self.portfolio.buy(stock, qty)
+
+        elif action == "sell":
+            qty = random.randint(1, 5)
+            self.portfolio.sell(stock, qty)
+
+    def momentum_strategy(self, market):
+        stock = random.choice(market.stocks)
+
+        if len(stock.history) < 2:
+            return
+
+        if stock.history[-1] > stock.history[-2]:
+            self.portfolio.buy(stock, 2)
+        else:
+            self.portfolio.sell(stock, 2)
+
+# -----------------------------
+# SIMULATION ENGINE
+# -----------------------------
+
+class Simulation:
+    def __init__(self):
+        self.market = Market(15)
+        self.traders = [Trader(f"Trader_{i}") for i in range(5)]
+        self.time = 0
+        self.logs = []
+
+    def step(self):
+        self.market.tick()
+
+        for trader in self.traders:
+            if random.random() > 0.5:
+                trader.random_strategy(self.market)
+            else:
+                trader.momentum_strategy(self.market)
+
+        self.time += 1
+        self.record()
+
+    def record(self):
+        snapshot = {
+            "time": self.time,
+            "market": {s.symbol: s.price for s in self.market.stocks},
+            "portfolios": {
+                t.name: t.portfolio.value(self.market)
+                for t in self.traders
+            }
+        }
+        self.logs.append(snapshot)
+
+    def run(self, steps=100):
+        for _ in range(steps):
+            self.step()
+
+# -----------------------------
+# ANALYTICS
+# -----------------------------
+
+class Analytics:
+    def __init__(self, logs):
+        self.logs = logs
+
+    def best_trader(self):
+        last = self.logs[-1]["portfolios"]
+        return max(last, key=last.get)
+
+    def worst_trader(self):
+        last = self.logs[-1]["portfolios"]
+        return min(last, key=last.get)
+
+    def avg_market_price(self):
+        last = self.logs[-1]["market"]
+        return sum(last.values()) / len(last)
+
+# -----------------------------
+# EXPORT SYSTEM
+# -----------------------------
+
+class Exporter:
+    @staticmethod
+    def to_csv(logs, filename="market.csv"):
+        with open(filename, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Time", "Trader", "Value"])
+
+            for log in logs:
+                for trader, value in log["portfolios"].items():
+                    writer.writerow([log["time"], trader, value])
+
+# -----------------------------
+# RISK ANALYSIS
+# -----------------------------
+
+class Risk:
+    @staticmethod
+    def volatility(prices):
+        avg = sum(prices) / len(prices)
+        return math.sqrt(sum((p - avg) ** 2 for p in prices) / len(prices))
+
+    @staticmethod
+    def max_drawdown(prices):
+        peak = prices[0]
+        max_dd = 0
+
+        for p in prices:
+            if p > peak:
+                peak = p
+            dd = (peak - p) / peak
+            max_dd = max(max_dd, dd)
+
+        return max_dd
+
+# -----------------------------
+# STRATEGY TESTER
+# -----------------------------
+
+class StrategyTester:
+    def __init__(self, stock):
+        self.stock = stock
+
+    def test(self):
+        prices = self.stock.history
+        vol = Risk.volatility(prices)
+        dd = Risk.max_drawdown(prices)
+
+        return {
+            "volatility": vol,
+            "drawdown": dd
+        }
+
+# -----------------------------
+# CLI APP
+# -----------------------------
+
+class App:
+    def run(self):
+        sim = Simulation()
+
+        while True:
+            print("\n1. Run Simulation")
+            print("2. Show Analytics")
+            print("3. Export CSV")
+            print("4. Risk Analysis")
+            print("5. Exit")
+
+            ch = input("Choice: ")
+
+            if ch == "1":
+                sim.run(100)
+                print("Simulation done")
+
+            elif ch == "2":
+                analytics = Analytics(sim.logs)
+                print("Best Trader:", analytics.best_trader())
+                print("Worst Trader:", analytics.worst_trader())
+                print("Avg Market Price:", analytics.avg_market_price())
+
+            elif ch == "3":
+                Exporter.to_csv(sim.logs)
+                print("Exported to CSV")
+
+            elif ch == "4":
+                stock = random.choice(sim.market.stocks)
+                tester = StrategyTester(stock)
+                print("Stock:", stock.symbol)
+                print(tester.test())
+
+            elif ch == "5":
+                break
+
+            else:
+                print("Invalid")
+
+# -----------------------------
+# EXTRA: MATRIX + RANDOM OPS
+# -----------------------------
+
+def random_matrix(n=5):
+    return [[random.randint(1, 10) for _ in range(n)] for _ in range(n)]
+
+def transpose(mat):
+    return list(zip(*mat))
+
+def matrix_add(a, b):
+    return [[a[i][j] + b[i][j] for j in range(len(a))] for i in range(len(a))]
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    app = App()
+    app.run()
