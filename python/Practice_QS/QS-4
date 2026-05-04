@@ -1,0 +1,280 @@
+import random
+import time
+from datetime import datetime
+
+# -----------------------------
+# UTILITIES
+# -----------------------------
+
+def now():
+    return datetime.now().strftime("%H:%M:%S")
+
+def rand_name():
+    return ''.join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=5))
+
+# -----------------------------
+# VEHICLE SYSTEM
+# -----------------------------
+
+class Vehicle:
+    def __init__(self, vid):
+        self.id = vid
+        self.speed = random.randint(20, 80)
+        self.position = 0
+
+    def move(self):
+        self.position += self.speed
+
+# -----------------------------
+# TRAFFIC LIGHT SYSTEM
+# -----------------------------
+
+class TrafficLight:
+    def __init__(self):
+        self.state = "RED"
+        self.timer = 0
+
+    def update(self):
+        self.timer += 1
+
+        if self.timer % 5 == 0:
+            if self.state == "RED":
+                self.state = "GREEN"
+            elif self.state == "GREEN":
+                self.state = "YELLOW"
+            else:
+                self.state = "RED"
+
+# -----------------------------
+# ROAD SYSTEM
+# -----------------------------
+
+class Road:
+    def __init__(self):
+        self.vehicles = [Vehicle(i) for i in range(10)]
+        self.light = TrafficLight()
+
+    def update(self):
+        self.light.update()
+
+        for v in self.vehicles:
+            if self.light.state == "GREEN":
+                v.move()
+
+# -----------------------------
+# WEATHER SYSTEM
+# -----------------------------
+
+class Weather:
+    def __init__(self):
+        self.condition = "Clear"
+
+    def update(self):
+        self.condition = random.choice(["Clear", "Rain", "Fog"])
+
+# -----------------------------
+# ENERGY SYSTEM
+# -----------------------------
+
+class EnergyGrid:
+    def __init__(self):
+        self.total_consumption = 0
+
+    def update(self):
+        consumption = random.randint(100, 500)
+        self.total_consumption += consumption
+        return consumption
+
+# -----------------------------
+# POPULATION SYSTEM
+# -----------------------------
+
+class Citizen:
+    def __init__(self):
+        self.name = rand_name()
+        self.energy_use = random.randint(1, 10)
+
+class Population:
+    def __init__(self, size=50):
+        self.people = [Citizen() for _ in range(size)]
+
+    def total_energy(self):
+        return sum(p.energy_use for p in self.people)
+
+# -----------------------------
+# EVENT SYSTEM
+# -----------------------------
+
+class EventSystem:
+    def __init__(self):
+        self.events = []
+
+    def generate_event(self):
+        event = random.choice([
+            "Accident",
+            "Concert",
+            "Power Outage",
+            "Festival"
+        ])
+        self.events.append((event, now()))
+
+# -----------------------------
+# SENSOR SYSTEM
+# -----------------------------
+
+class Sensor:
+    def __init__(self, sid):
+        self.id = sid
+
+    def read(self):
+        return {
+            "traffic": random.randint(0, 100),
+            "pollution": random.randint(10, 200),
+            "noise": random.randint(20, 100)
+        }
+
+# -----------------------------
+# CITY CORE
+# -----------------------------
+
+class City:
+    def __init__(self):
+        self.road = Road()
+        self.weather = Weather()
+        self.energy = EnergyGrid()
+        self.population = Population(100)
+        self.events = EventSystem()
+        self.sensors = [Sensor(i) for i in range(5)]
+        self.time = 0
+        self.logs = []
+
+    def update(self):
+        self.road.update()
+        self.weather.update()
+        energy_used = self.energy.update()
+
+        if random.random() < 0.2:
+            self.events.generate_event()
+
+        sensor_data = [s.read() for s in self.sensors]
+
+        snapshot = {
+            "time": self.time,
+            "weather": self.weather.condition,
+            "energy": energy_used,
+            "population_energy": self.population.total_energy(),
+            "events": list(self.events.events),
+            "sensor": sensor_data
+        }
+
+        self.logs.append(snapshot)
+        self.time += 1
+
+# -----------------------------
+# ANALYTICS
+# -----------------------------
+
+class Analytics:
+    def __init__(self, logs):
+        self.logs = logs
+
+    def avg_energy(self):
+        return sum(l["energy"] for l in self.logs) / len(self.logs)
+
+    def most_common_weather(self):
+        weather_count = {}
+        for l in self.logs:
+            w = l["weather"]
+            weather_count[w] = weather_count.get(w, 0) + 1
+        return max(weather_count, key=weather_count.get)
+
+    def total_events(self):
+        return sum(len(l["events"]) for l in self.logs)
+
+# -----------------------------
+# AI-LIKE DECISION SYSTEM
+# -----------------------------
+
+class SmartController:
+    def __init__(self, city):
+        self.city = city
+
+    def optimize_traffic(self):
+        if self.city.weather.condition == "Rain":
+            self.city.road.light.state = "GREEN"
+
+    def reduce_energy(self):
+        if self.city.energy.total_consumption > 5000:
+            return "Reduce street lighting"
+
+# -----------------------------
+# CLI APP
+# -----------------------------
+
+class App:
+    def run(self):
+        city = City()
+        controller = SmartController(city)
+
+        while True:
+            print("\n1. Run Simulation")
+            print("2. Show Analytics")
+            print("3. Show Last Snapshot")
+            print("4. Exit")
+
+            choice = input("Enter: ")
+
+            if choice == "1":
+                for _ in range(50):
+                    city.update()
+                    controller.optimize_traffic()
+                print("Simulation complete")
+
+            elif choice == "2":
+                analytics = Analytics(city.logs)
+                print("Avg Energy:", analytics.avg_energy())
+                print("Common Weather:", analytics.most_common_weather())
+                print("Total Events:", analytics.total_events())
+
+            elif choice == "3":
+                if city.logs:
+                    print(city.logs[-1])
+                else:
+                    print("No data")
+
+            elif choice == "4":
+                break
+
+            else:
+                print("Invalid")
+
+# -----------------------------
+# EXTRA: GRAPH SIMULATION
+# -----------------------------
+
+def generate_network(n=6):
+    graph = {i: [] for i in range(n)}
+    for i in range(n):
+        for j in range(n):
+            if i != j and random.random() > 0.5:
+                graph[i].append(j)
+    return graph
+
+def bfs(graph, start):
+    visited = set()
+    queue = [start]
+
+    while queue:
+        node = queue.pop(0)
+        if node not in visited:
+            visited.add(node)
+            queue.extend(graph[node])
+
+    return visited
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    App().run()
