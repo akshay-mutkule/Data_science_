@@ -1,0 +1,324 @@
+import time
+import random
+import asyncio
+import threading
+from collections import deque, defaultdict
+from functools import lru_cache, wraps
+
+# =====================================
+# Logger System
+# =====================================
+
+class Logger:
+    LEVELS = ["INFO", "DEBUG", "ERROR"]
+
+    def __init__(self):
+        self.logs = []
+
+    def log(self, level, message):
+        if level not in self.LEVELS:
+            level = "INFO"
+        entry = f"[{level}] {time.strftime('%H:%M:%S')} - {message}"
+        self.logs.append(entry)
+        print(entry)
+
+logger = Logger()
+
+# =====================================
+# Decorators
+# =====================================
+
+def retry(times=3):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    logger.log("ERROR", f"{func.__name__} failed: {e}")
+            return None
+        return wrapper
+    return decorator
+
+def delay(seconds=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            time.sleep(seconds)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# =====================================
+# Task Class
+# =====================================
+
+class Task:
+    def __init__(self, task_id, name, priority):
+        self.task_id = task_id
+        self.name = name
+        self.priority = priority
+        self.completed = False
+
+    def execute(self):
+        logger.log("INFO", f"Executing Task {self.task_id} - {self.name}")
+        time.sleep(random.uniform(0.1, 0.5))
+        self.completed = True
+
+    def __repr__(self):
+        return f"Task({self.task_id}, {self.name}, P{self.priority})"
+
+# =====================================
+# Task Queue (Priority)
+# =====================================
+
+class TaskQueue:
+    def __init__(self):
+        self.queue = []
+
+    def add_task(self, task):
+        self.queue.append(task)
+        self.queue.sort(key=lambda x: x.priority, reverse=True)
+
+    def get_task(self):
+        if self.queue:
+            return self.queue.pop(0)
+        return None
+
+    def is_empty(self):
+        return len(self.queue) == 0
+
+# =====================================
+# Scheduler
+# =====================================
+
+class Scheduler:
+    def __init__(self):
+        self.task_queue = TaskQueue()
+        self.history = []
+
+    def add_task(self, task):
+        logger.log("DEBUG", f"Adding {task}")
+        self.task_queue.add_task(task)
+
+    def run(self):
+        while not self.task_queue.is_empty():
+            task = self.task_queue.get_task()
+            if task:
+                task.execute()
+                self.history.append(task)
+
+# =====================================
+# Async Processing
+# =====================================
+
+async def async_task(name):
+    await asyncio.sleep(random.uniform(0.1, 0.5))
+    logger.log("INFO", f"Async task done: {name}")
+    return name
+
+async def run_async_tasks():
+    tasks = [async_task(f"A{i}") for i in range(5)]
+    results = await asyncio.gather(*tasks)
+    return results
+
+# =====================================
+# Caching Example
+# =====================================
+
+@lru_cache(maxsize=100)
+def expensive_computation(x):
+    time.sleep(0.1)
+    return x * x
+
+# =====================================
+# Data Structures Practice
+# =====================================
+
+class Stack:
+    def __init__(self):
+        self.data = []
+
+    def push(self, x):
+        self.data.append(x)
+
+    def pop(self):
+        return self.data.pop() if self.data else None
+
+class Queue:
+    def __init__(self):
+        self.data = deque()
+
+    def enqueue(self, x):
+        self.data.append(x)
+
+    def dequeue(self):
+        return self.data.popleft() if self.data else None
+
+# =====================================
+# Graph Implementation
+# =====================================
+
+class Graph:
+    def __init__(self):
+        self.adj = defaultdict(list)
+
+    def add_edge(self, u, v):
+        self.adj[u].append(v)
+
+    def bfs(self, start):
+        visited = set()
+        q = deque([start])
+        result = []
+
+        while q:
+            node = q.popleft()
+            if node not in visited:
+                visited.add(node)
+                result.append(node)
+                q.extend(self.adj[node])
+        return result
+
+# =====================================
+# Thread Worker
+# =====================================
+
+class Worker(threading.Thread):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def run(self):
+        logger.log("INFO", f"Thread {self.name} started")
+        time.sleep(random.uniform(0.2, 0.6))
+        logger.log("INFO", f"Thread {self.name} finished")
+
+# =====================================
+# CLI Simulation
+# =====================================
+
+class CLI:
+    def __init__(self):
+        self.commands = {
+            "add": self.add_task,
+            "run": self.run_tasks,
+            "exit": self.exit_cli
+        }
+        self.scheduler = Scheduler()
+        self.running = True
+
+    def add_task(self):
+        tid = random.randint(100, 999)
+        task = Task(tid, f"Task{tid}", random.randint(1, 5))
+        self.scheduler.add_task(task)
+
+    def run_tasks(self):
+        self.scheduler.run()
+
+    def exit_cli(self):
+        self.running = False
+
+    def start(self):
+        while self.running:
+            cmd = random.choice(list(self.commands.keys()))
+            logger.log("DEBUG", f"Command: {cmd}")
+            self.commands[cmd]()
+
+# =====================================
+# Algorithms
+# =====================================
+
+def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr)//2
+    left = merge_sort(arr[:mid])
+    right = merge_sort(arr[mid:])
+    return merge(left, right)
+
+def merge(left, right):
+    result = []
+    i = j = 0
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
+
+def dfs(graph, node, visited=None):
+    if visited is None:
+        visited = set()
+    visited.add(node)
+    for neigh in graph.adj[node]:
+        if neigh not in visited:
+            dfs(graph, neigh, visited)
+    return visited
+
+# =====================================
+# Simulation Runner
+# =====================================
+
+def run_simulation():
+    logger.log("INFO", "Starting simulation")
+
+    # Scheduler
+    scheduler = Scheduler()
+    for i in range(10):
+        scheduler.add_task(Task(i, f"T{i}", random.randint(1, 5)))
+    scheduler.run()
+
+    # Threads
+    threads = [Worker(f"W{i}") for i in range(3)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    # Async
+    asyncio.run(run_async_tasks())
+
+    # Cache test
+    for i in range(5):
+        print(expensive_computation(i))
+
+    # Data structures
+    stack = Stack()
+    for i in range(5):
+        stack.push(i)
+    print("Stack pop:", stack.pop())
+
+    queue = Queue()
+    for i in range(5):
+        queue.enqueue(i)
+    print("Queue dequeue:", queue.dequeue())
+
+    # Graph
+    g = Graph()
+    edges = [(1,2),(1,3),(2,4),(3,5)]
+    for u,v in edges:
+        g.add_edge(u,v)
+
+    print("BFS:", g.bfs(1))
+    print("DFS:", dfs(g, 1))
+
+    # Sorting
+    arr = [random.randint(1,100) for _ in range(10)]
+    print("Sorted:", merge_sort(arr))
+
+    logger.log("INFO", "Simulation finished")
+
+# =====================================
+# Entry Point
+# =====================================
+
+if __name__ == "__main__":
+    run_simulation()
+
+    cli = CLI()
+    cli.start()
