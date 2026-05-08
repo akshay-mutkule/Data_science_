@@ -1,0 +1,403 @@
+import random
+import math
+import time
+from datetime import datetime
+
+# ==========================================
+# SPACE COLONY SIMULATOR
+# ==========================================
+
+# -----------------------------
+# UTILITY FUNCTIONS
+# -----------------------------
+
+def random_name():
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    return ''.join(random.choice(letters) for _ in range(6))
+
+def timestamp():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# -----------------------------
+# ASTRONAUT SYSTEM
+# -----------------------------
+
+class Astronaut:
+    def __init__(self, aid):
+        self.id = aid
+        self.name = random_name()
+        self.health = random.randint(60, 100)
+        self.energy = random.randint(50, 100)
+        self.skill = random.choice([
+            "Engineer",
+            "Scientist",
+            "Pilot",
+            "Doctor"
+        ])
+
+    def work(self):
+        self.energy -= random.randint(5, 15)
+        self.health -= random.randint(1, 5)
+
+    def rest(self):
+        self.energy += random.randint(10, 20)
+
+    def status(self):
+        return {
+            "name": self.name,
+            "health": self.health,
+            "energy": self.energy,
+            "skill": self.skill
+        }
+
+# -----------------------------
+# ROBOT SYSTEM
+# -----------------------------
+
+class Robot:
+    def __init__(self, rid):
+        self.id = rid
+        self.power = random.randint(50, 100)
+        self.task = "Idle"
+
+    def assign_task(self, task):
+        self.task = task
+        self.power -= random.randint(5, 20)
+
+    def recharge(self):
+        self.power = 100
+
+# -----------------------------
+# RESOURCE SYSTEM
+# -----------------------------
+
+class ResourceManager:
+    def __init__(self):
+        self.oxygen = 1000
+        self.water = 1000
+        self.food = 1000
+        self.energy = 1000
+
+    def consume(self):
+        self.oxygen -= random.randint(5, 20)
+        self.water -= random.randint(5, 20)
+        self.food -= random.randint(5, 20)
+        self.energy -= random.randint(10, 40)
+
+    def produce(self):
+        self.energy += random.randint(20, 60)
+
+    def report(self):
+        return {
+            "oxygen": self.oxygen,
+            "water": self.water,
+            "food": self.food,
+            "energy": self.energy
+        }
+
+# -----------------------------
+# WEATHER SYSTEM
+# -----------------------------
+
+class SpaceWeather:
+    def __init__(self):
+        self.condition = "Clear"
+
+    def update(self):
+        self.condition = random.choice([
+            "Clear",
+            "Solar Storm",
+            "Meteor Shower",
+            "Radiation Burst"
+        ])
+
+# -----------------------------
+# COLONY BUILDINGS
+# -----------------------------
+
+class Building:
+    def __init__(self, name):
+        self.name = name
+        self.integrity = 100
+
+    def damage(self):
+        self.integrity -= random.randint(1, 10)
+
+    def repair(self):
+        self.integrity += random.randint(1, 5)
+
+# -----------------------------
+# TRANSPORT SYSTEM
+# -----------------------------
+
+class Rover:
+    def __init__(self, rid):
+        self.id = rid
+        self.fuel = 100
+        self.distance = 0
+
+    def explore(self):
+        used = random.randint(5, 15)
+        self.fuel -= used
+        self.distance += random.randint(10, 50)
+
+    def refuel(self):
+        self.fuel = 100
+
+# -----------------------------
+# SCIENCE SYSTEM
+# -----------------------------
+
+class ResearchLab:
+    def __init__(self):
+        self.points = 0
+
+    def research(self):
+        gain = random.randint(10, 50)
+        self.points += gain
+        return gain
+
+# -----------------------------
+# SECURITY SYSTEM
+# -----------------------------
+
+class DefenseSystem:
+    def __init__(self):
+        self.alert = False
+
+    def scan(self):
+        self.alert = random.choice([True, False])
+
+# -----------------------------
+# MAIN COLONY SYSTEM
+# -----------------------------
+
+class Colony:
+    def __init__(self):
+        self.astronauts = [Astronaut(i) for i in range(20)]
+        self.robots = [Robot(i) for i in range(10)]
+        self.resources = ResourceManager()
+        self.weather = SpaceWeather()
+        self.lab = ResearchLab()
+        self.defense = DefenseSystem()
+
+        self.buildings = [
+            Building("Command Center"),
+            Building("Research Lab"),
+            Building("Hydroponics"),
+            Building("Power Station")
+        ]
+
+        self.rovers = [Rover(i) for i in range(5)]
+
+        self.logs = []
+
+    def simulate_day(self):
+
+        self.weather.update()
+
+        self.resources.consume()
+        self.resources.produce()
+
+        research_gain = self.lab.research()
+
+        self.defense.scan()
+
+        for astronaut in self.astronauts:
+            astronaut.work()
+
+        for robot in self.robots:
+            robot.assign_task(random.choice([
+                "Mining",
+                "Repair",
+                "Exploration"
+            ]))
+
+        for building in self.buildings:
+            if random.random() > 0.7:
+                building.damage()
+
+        for rover in self.rovers:
+            rover.explore()
+
+        log = {
+            "time": timestamp(),
+            "weather": self.weather.condition,
+            "resources": self.resources.report(),
+            "research_points": self.lab.points,
+            "security_alert": self.defense.alert
+        }
+
+        self.logs.append(log)
+
+# -----------------------------
+# ANALYTICS SYSTEM
+# -----------------------------
+
+class Analytics:
+
+    @staticmethod
+    def average_health(colony):
+        return sum(a.health for a in colony.astronauts) / len(colony.astronauts)
+
+    @staticmethod
+    def total_distance(colony):
+        return sum(r.distance for r in colony.rovers)
+
+    @staticmethod
+    def damaged_buildings(colony):
+        return [
+            b.name
+            for b in colony.buildings
+            if b.integrity < 70
+        ]
+
+# -----------------------------
+# AI MANAGEMENT SYSTEM
+# -----------------------------
+
+class ColonyAI:
+
+    def __init__(self, colony):
+        self.colony = colony
+
+    def optimize_resources(self):
+
+        resources = self.colony.resources
+
+        if resources.energy < 300:
+            resources.energy += 100
+
+        if resources.food < 300:
+            resources.food += 100
+
+    def emergency_protocol(self):
+
+        if self.colony.weather.condition == "Solar Storm":
+            print("WARNING: SOLAR STORM DETECTED")
+
+# -----------------------------
+# GRAPH SYSTEM
+# -----------------------------
+
+class ColonyMap:
+
+    def __init__(self, size=8):
+        self.graph = {
+            i: [] for i in range(size)
+        }
+
+        for i in range(size):
+            for j in range(size):
+                if i != j and random.random() > 0.5:
+                    self.graph[i].append(j)
+
+    def dfs(self, node, visited=None):
+
+        if visited is None:
+            visited = set()
+
+        visited.add(node)
+
+        for neighbor in self.graph[node]:
+            if neighbor not in visited:
+                self.dfs(neighbor, visited)
+
+        return visited
+
+# -----------------------------
+# MATHEMATICAL ENGINE
+# -----------------------------
+
+class PhysicsEngine:
+
+    @staticmethod
+    def gravity_force(m1, m2, r):
+        G = 6.674e-11
+        return G * m1 * m2 / (r ** 2)
+
+    @staticmethod
+    def orbital_speed(mass, radius):
+        G = 6.674e-11
+        return math.sqrt(G * mass / radius)
+
+# -----------------------------
+# CLI APPLICATION
+# -----------------------------
+
+class App:
+
+    def run(self):
+
+        colony = Colony()
+        ai = ColonyAI(colony)
+
+        while True:
+
+            print("\n========== SPACE COLONY ==========")
+            print("1. Simulate Day")
+            print("2. Colony Report")
+            print("3. Analytics")
+            print("4. Physics Engine")
+            print("5. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+
+                colony.simulate_day()
+                ai.optimize_resources()
+                ai.emergency_protocol()
+
+                print("Day simulated")
+
+            elif choice == "2":
+
+                print("\n--- RESOURCES ---")
+                print(colony.resources.report())
+
+                print("\n--- WEATHER ---")
+                print(colony.weather.condition)
+
+                print("\n--- RESEARCH ---")
+                print(colony.lab.points)
+
+            elif choice == "3":
+
+                print("\nAverage Health:",
+                      Analytics.average_health(colony))
+
+                print("Total Rover Distance:",
+                      Analytics.total_distance(colony))
+
+                print("Damaged Buildings:",
+                      Analytics.damaged_buildings(colony))
+
+            elif choice == "4":
+
+                m1 = random.randint(1000, 100000)
+                m2 = random.randint(1000, 100000)
+                r = random.randint(100, 1000)
+
+                print(
+                    "Gravity Force:",
+                    PhysicsEngine.gravity_force(m1, m2, r)
+                )
+
+                print(
+                    "Orbital Speed:",
+                    PhysicsEngine.orbital_speed(m1, r)
+                )
+
+            elif choice == "5":
+                break
+
+            else:
+                print("Invalid option")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    App().run()
