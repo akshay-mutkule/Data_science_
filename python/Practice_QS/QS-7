@@ -1,0 +1,319 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Tuple
+from enum import Enum
+import random
+from concurrent.futures import ThreadPoolExecutor
+import time
+from abc import ABC, abstractmethod
+import json
+from datetime import datetime, timedelta
+
+class StrategyType(Enum):
+    MOMENTUM = "momentum"
+    MEAN_REVERSION = "mean_reversion"
+    ARBITRAGE = "arbitrage"
+    RANDOM = "random"
+
+@dataclass
+class MarketData:
+    timestamp: datetime
+    price: float
+    volume: float
+    volatility: float
+    
+    def to_dict(self):
+        return {
+            'timestamp': self.timestamp.isoformat(),
+            'price': self.price,
+            'volume': self.volume,
+            'volatility': self.volatility
+        }
+
+class Trader(ABC):
+    @abstractmethod
+    def decide_action(self, market_data: MarketData) -> Dict:
+        pass
+
+class MomentumTrader(Trader):
+    def __init__(self, name: str, momentum_window: int = 10):
+        self.name = name
+        self.momentum_window = momentum_window
+        self.price_history = []
+    
+    def decide_action(self, market_data: MarketData) -> Dict:
+        self.price_history.append(market_data.price)
+        if len(self.price_history) < self.momentum_window:
+            return {'action': 'HOLD', 'confidence': 0.5}
+        
+        recent_momentum = (
+            self.price_history[-1] - self.price_history[-self.momentum_window]
+        ) / self.momentum_window
+        
+        if recent_momentum > 0.02:
+            return {'action': 'BUY', 'confidence': min(0.95, abs(recent_momentum))}
+        elif recent_momentum < -0.02:
+            return {'action': 'SELL', 'confidence': min(0.95, abs(recent_momentum))}
+        return {'action': 'HOLD', 'confidence': 0.5}
+
+class MeanReversionTrader(Trader):
+    def __init__(self, name: str, mean_window: int = 20, std_threshold: float = 2.0):
+        self.name = name
+        self.mean_window = mean_window
+        self.std_threshold = std_threshold
+        self.price_history = []
+    
+    def decide_action(self, market_data: MarketData) -> Dict:
+        self.price_history.append(market_data.price)
+        if len(self.price_history) < self.mean_window:
+            return {'action': 'HOLD', 'confidence': 0.5}
+        
+        recent_prices = self.price_history[-self.mean_window:]
+        mean_price = np.mean(recent_prices)
+        std_price = np.std(recent_prices)
+        
+        z_score = (market_data.price - mean_price) / std_price if std_price > 0 else 0
+        
+        if z_score > self.std_threshold:
+            return {'action': 'SELL', 'confidence': min(0.9, z_score/3)}
+        elif z_score < -self.std_threshold:
+            return {'action': 'BUY', 'confidence': min(0.9, abs(z_score)/3)}
+        return {'action': 'HOLD', 'confidence': 0.5}
+
+class Portfolio:
+    def __init__(self, initial_cash: float = 100000):
+        self.cash = initial_cash
+        self.shares = 0
+        self.trade_history = []
+        self.total_value_history = []
+    
+    def execute_trade(self, action: str, price: float, shares: int = 100):
+        if action == 'BUY' and self.cash >= price * shares:
+            cost = price * shares
+            self.cash -= cost
+            self.shares += shares
+            self.trade_history.append({
+                'action': 'BUY',
+                'price': price,
+                'shares': shares,
+                'timestamp': datetime.now(),
+                'cash_after': self.cash,
+                'shares_after': self.shares
+            })
+        elif action == 'SELL' and self.shares >= shares:
+            revenue = price * shares
+            self.cash += revenue
+            self.shares -= shares
+            self.trade_history.append({
+                'action': 'SELL',
+                'price': price,
+                'shares': shares,
+                'timestamp': datetime.now(),
+                'cash_after': self.cash,
+                'shares_after': self.shares
+            })
+    
+    def get_total_value(self, current_price: float) -> float:
+        return self.cash + self.shares * current_price
+    
+    def update_value_history(self, current_price: float):
+        self.total_value_history.append(self.get_total_value(current_price))
+
+class MarketSimulator:
+    def __init__(self, initial_price: float = 100.0, volatility: float = 0.02):
+        self.current_price = initial_price
+        self.volatility = volatility
+        self.market_history = []
+        self.traders: List[Trader] = []
+        self.portfolios: Dict[str, Portfolio] = {}
+    
+    def add_trader(self, trader: Trader):
+        self.traders.append(trader)
+        self.portfolios[trader.name] = Portfolio()
+    
+    def generate_market_data(self) -> MarketData:
+        # Geometric Brownian Motion for realistic price movement
+        drift = 0.0005
+        shock = self.volatility * np.random.normal()
+        self.current_price *= np.exp(drift + shock)
+        self.current_price = max(self.current_price, 10.0)  # Minimum price
+        
+        volume = 1000 + 500 * abs(np.random.normal())
+        volatility = self.volatility * (1 + abs(np.random.normal(0, 0.3)))
+        
+        market_data = MarketData(
+            timestamp=datetime.now(),
+            price=self.current_price,
+            volume=volume,
+            volatility=volatility
+        )
+        self.market_history.append(market_data.to_dict())
+        return market_data
+    
+    def run_simulation_step(self):
+        market_data = self.generate_market_data()
+        
+        # Get decisions from all traders
+        decisions = {}
+        for trader in self.traders:
+            decision = trader.decide_action(market_data)
+            decisions[trader.name] = decision
+            
+            # Execute trades
+            portfolio = self.portfolios[trader.name]
+            action = decision['action']
+            if action in ['BUY', 'SELL']:
+                shares = 100 if random.random() > 0.3 else 50  # Variable position sizing
+                portfolio.execute_trade(action, market_data.price, shares)
+            
+            # Update portfolio value history
+            portfolio.update_value_history(market_data.price)
+    
+    def run_simulation(self, steps: int = 1000):
+        print(f"Running {steps} steps of multi-agent trading simulation...")
+        start_time = time.time()
+        
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            for i in range(steps):
+                future = executor.submit(self.run_simulation_step)
+                futures.append(future)
+            
+            for future in futures:
+                future.result()
+        
+        elapsed = time.time() - start_time
+        print(f"Simulation completed in {elapsed:.2f} seconds")
+    
+    def analyze_results(self):
+        results = {}
+        for trader_name, portfolio in self.portfolios.items():
+            final_value = portfolio.total_value_history[-1] if portfolio.total_value_history else 100000
+            total_return = (final_value - 100000) / 100000 * 100
+            sharpe_ratio = self._calculate_sharpe(portfolio.total_value_history)
+            
+            results[trader_name] = {
+                'final_value': final_value,
+                'total_return_pct': total_return,
+                'sharpe_ratio': sharpe_ratio,
+                'num_trades': len([t for t in portfolio.trade_history if t['action'] in ['BUY', 'SELL']]),
+                'win_rate': self._calculate_win_rate(portfolio.trade_history)
+            }
+        
+        return results
+    
+    def _calculate_sharpe(self, value_history: List[float]) -> float:
+        if len(value_history) < 2:
+            return 0.0
+        
+        returns = np.diff(value_history) / value_history[:-1]
+        return np.mean(returns) / np.std(returns) * np.sqrt(252) if np.std(returns) > 0 else 0
+    
+    def _calculate_win_rate(self, trade_history: List[Dict]) -> float:
+        profitable_trades = 0
+        total_trades = 0
+        
+        buy_price = 0
+        for trade in trade_history:
+            if trade['action'] == 'BUY':
+                buy_price = trade['price']
+            elif trade['action'] == 'SELL' and buy_price > 0:
+                if trade['price'] > buy_price:
+                    profitable_trades += 1
+                total_trades += 1
+                buy_price = 0
+        
+        return profitable_trades / total_trades * 100 if total_trades > 0 else 0
+    
+    def plot_results(self):
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(15, 12))
+        
+        # Price history
+        prices = [h['price'] for h in self.market_history[-200:]]
+        ax1.plot(prices)
+        ax1.set_title('Market Price History (Last 200 Steps)')
+        ax1.set_ylabel('Price')
+        
+        # Portfolio performance
+        for trader_name, portfolio in self.portfolios.items():
+            values = portfolio.total_value_history[-200:]
+            ax2.plot(values, label=trader_name)
+        ax2.set_title('Portfolio Values (Last 200 Steps)')
+        ax2.set_ylabel('Portfolio Value')
+        ax2.legend()
+        
+        # Performance metrics
+        results = self.analyze_results()
+        traders = list(results.keys())
+        returns = [results[t]['total_return_pct'] for t in traders]
+        ax3.bar(traders, returns)
+        ax3.set_title('Total Returns (%)')
+        ax3.tick_params(axis='x', rotation=45)
+        
+        # Sharpe ratios
+        sharpes = [results[t]['sharpe_ratio'] for t in traders]
+        ax4.bar(traders, sharpes)
+        ax4.set_title('Sharpe Ratios')
+        ax4.tick_params(axis='x', rotation=45)
+        
+        plt.tight_layout()
+        plt.savefig('trading_simulation_results.png', dpi=300, bbox_inches='tight')
+        plt.show()
+    
+    def save_results(self, filename: str = 'trading_results.json'):
+        results = {
+            'simulation_date': datetime.now().isoformat(),
+            'market_history': self.market_history[-100:],  # Last 100 steps
+            'portfolios': {},
+            'performance_metrics': self.analyze_results()
+        }
+        
+        for trader_name, portfolio in self.portfolios.items():
+            results['portfolios'][trader_name] = {
+                'trade_history': portfolio.trade_history[-20:],  # Last 20 trades
+                'final_value': portfolio.total_value_history[-1] if portfolio.total_value_history else 100000
+            }
+        
+        with open(filename, 'w') as f:
+            json.dump(results, f, indent=2, default=str)
+
+def main():
+    # Initialize market simulator
+    market = MarketSimulator(initial_price=100.0, volatility=0.025)
+    
+    # Create diverse set of traders
+    traders = [
+        MomentumTrader("FastMomentum", momentum_window=5),
+        MomentumTrader("SlowMomentum", momentum_window=20),
+        MeanReversionTrader("QuickReversion", mean_window=10, std_threshold=1.5),
+        MeanReversionTrader("Conservative", mean_window=30, std_threshold=2.5)
+    ]
+    
+    # Add traders to market
+    for trader in traders:
+        market.add_trader(trader)
+    
+    # Run simulation
+    market.run_simulation(steps=2000)
+    
+    # Analyze and visualize results
+    results = market.analyze_results()
+    print("\n=== PERFORMANCE SUMMARY ===")
+    for trader, metrics in results.items():
+        print(f"{trader}:")
+        print(f"  Return: {metrics['total_return_pct']:.1f}%")
+        print(f"  Sharpe: {metrics['sharpe_ratio']:.2f}")
+        print(f"  Win Rate: {metrics['win_rate']:.1f}%")
+        print(f"  Trades: {metrics['num_trades']}")
+        print()
+    
+    # Generate plots and save data
+    market.plot_results()
+    market.save_results()
+    print("Results saved to 'trading_results.json' and 'trading_simulation_results.png'")
+
+if __name__ == "__main__":
+    main()
