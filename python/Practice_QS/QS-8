@@ -1,0 +1,505 @@
+import random
+import string
+import hashlib
+import time
+from datetime import datetime
+
+# ============================================================
+# CYBER SECURITY ATTACK & DEFENSE SIMULATOR
+# ============================================================
+
+# -----------------------------
+# UTILITY FUNCTIONS
+# -----------------------------
+
+def random_ip():
+    return ".".join(str(random.randint(1, 255)) for _ in range(4))
+
+def random_username():
+    return ''.join(random.choices(string.ascii_lowercase, k=8))
+
+def random_password():
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(12))
+
+def current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+# -----------------------------
+# USER SYSTEM
+# -----------------------------
+
+class User:
+
+    def __init__(self, uid):
+
+        self.id = uid
+        self.username = random_username()
+        self.password = self.encrypt(random_password())
+        self.role = random.choice([
+            "Admin",
+            "Analyst",
+            "Guest",
+            "Developer"
+        ])
+
+        self.failed_attempts = 0
+        self.locked = False
+
+    def encrypt(self, text):
+        return hashlib.sha256(text.encode()).hexdigest()
+
+    def login(self, password):
+
+        if self.locked:
+            return False
+
+        if self.encrypt(password) == self.password:
+            self.failed_attempts = 0
+            return True
+
+        self.failed_attempts += 1
+
+        if self.failed_attempts >= 3:
+            self.locked = True
+
+        return False
+
+# -----------------------------
+# FIREWALL SYSTEM
+# -----------------------------
+
+class Firewall:
+
+    def __init__(self):
+
+        self.blocked_ips = set()
+        self.rules = []
+
+    def add_rule(self, rule):
+        self.rules.append(rule)
+
+    def block_ip(self, ip):
+        self.blocked_ips.add(ip)
+
+    def is_blocked(self, ip):
+        return ip in self.blocked_ips
+
+# -----------------------------
+# NETWORK PACKET SYSTEM
+# -----------------------------
+
+class Packet:
+
+    def __init__(self):
+
+        self.source = random_ip()
+        self.destination = random_ip()
+        self.size = random.randint(64, 1500)
+        self.protocol = random.choice([
+            "TCP",
+            "UDP",
+            "HTTP",
+            "HTTPS"
+        ])
+
+# -----------------------------
+# INTRUSION DETECTION SYSTEM
+# -----------------------------
+
+class IDS:
+
+    def __init__(self):
+
+        self.alerts = []
+
+    def inspect(self, packet):
+
+        suspicious = False
+
+        if packet.size > 1400:
+            suspicious = True
+
+        if packet.protocol == "HTTP":
+            suspicious = True
+
+        if suspicious:
+
+            alert = {
+                "time": current_time(),
+                "source": packet.source,
+                "protocol": packet.protocol,
+                "size": packet.size
+            }
+
+            self.alerts.append(alert)
+
+# -----------------------------
+# MALWARE SYSTEM
+# -----------------------------
+
+class Malware:
+
+    def __init__(self):
+
+        self.name = random.choice([
+            "Trojan",
+            "Ransomware",
+            "Spyware",
+            "Rootkit"
+        ])
+
+        self.severity = random.randint(1, 10)
+
+    def infect(self, system):
+
+        damage = random.randint(10, 50)
+        system.health -= damage
+
+# -----------------------------
+# SERVER SYSTEM
+# -----------------------------
+
+class Server:
+
+    def __init__(self, sid):
+
+        self.id = sid
+        self.ip = random_ip()
+        self.health = 100
+        self.cpu = random.randint(10, 40)
+        self.memory = random.randint(20, 60)
+
+    def update_load(self):
+
+        self.cpu += random.randint(-5, 10)
+        self.memory += random.randint(-5, 10)
+
+        self.cpu = max(0, min(100, self.cpu))
+        self.memory = max(0, min(100, self.memory))
+
+# -----------------------------
+# DDOS ATTACK SYSTEM
+# -----------------------------
+
+class DDoSAttack:
+
+    def __init__(self):
+
+        self.bot_count = random.randint(100, 5000)
+
+    def attack(self, server):
+
+        impact = self.bot_count // 100
+        server.cpu += impact
+
+        if server.cpu > 100:
+            server.cpu = 100
+
+# -----------------------------
+# SECURITY OPERATIONS CENTER
+# -----------------------------
+
+class SOC:
+
+    def __init__(self):
+
+        self.logs = []
+
+    def log(self, message):
+
+        self.logs.append({
+            "time": current_time(),
+            "message": message
+        })
+
+# -----------------------------
+# ENCRYPTION ENGINE
+# -----------------------------
+
+class EncryptionEngine:
+
+    @staticmethod
+    def md5(text):
+        return hashlib.md5(text.encode()).hexdigest()
+
+    @staticmethod
+    def sha1(text):
+        return hashlib.sha1(text.encode()).hexdigest()
+
+    @staticmethod
+    def sha256(text):
+        return hashlib.sha256(text.encode()).hexdigest()
+
+# -----------------------------
+# PASSWORD AUDITOR
+# -----------------------------
+
+class PasswordAuditor:
+
+    @staticmethod
+    def strength(password):
+
+        score = 0
+
+        if len(password) >= 8:
+            score += 1
+
+        if any(c.isdigit() for c in password):
+            score += 1
+
+        if any(c.isupper() for c in password):
+            score += 1
+
+        if any(c in "!@#$%^&*" for c in password):
+            score += 1
+
+        return score
+
+# -----------------------------
+# VULNERABILITY SCANNER
+# -----------------------------
+
+class VulnerabilityScanner:
+
+    def __init__(self):
+
+        self.vulnerabilities = []
+
+    def scan(self, server):
+
+        if server.cpu > 80:
+            self.vulnerabilities.append(
+                f"High CPU vulnerability on {server.ip}"
+            )
+
+        if server.memory > 85:
+            self.vulnerabilities.append(
+                f"Memory overflow risk on {server.ip}"
+            )
+
+# -----------------------------
+# AI DEFENSE ENGINE
+# -----------------------------
+
+class AIDefense:
+
+    def __init__(self, firewall):
+
+        self.firewall = firewall
+
+    def analyze(self, packet):
+
+        risk = 0
+
+        if packet.size > 1200:
+            risk += 1
+
+        if packet.protocol == "HTTP":
+            risk += 1
+
+        if risk >= 2:
+            self.firewall.block_ip(packet.source)
+
+# -----------------------------
+# CYBER SIMULATION
+# -----------------------------
+
+class CyberSimulation:
+
+    def __init__(self):
+
+        self.users = [User(i) for i in range(20)]
+
+        self.firewall = Firewall()
+        self.ids = IDS()
+        self.soc = SOC()
+
+        self.servers = [
+            Server(i) for i in range(5)
+        ]
+
+        self.ai = AIDefense(self.firewall)
+
+        self.scanner = VulnerabilityScanner()
+
+        self.logs = []
+
+    def simulate_packet_flow(self):
+
+        packet = Packet()
+
+        self.ids.inspect(packet)
+        self.ai.analyze(packet)
+
+        self.logs.append(packet)
+
+    def simulate_attack(self):
+
+        server = random.choice(self.servers)
+
+        attack = DDoSAttack()
+        attack.attack(server)
+
+        self.soc.log(
+            f"DDoS attack on {server.ip}"
+        )
+
+    def simulate_malware(self):
+
+        malware = Malware()
+        server = random.choice(self.servers)
+
+        malware.infect(server)
+
+        self.soc.log(
+            f"{malware.name} infected {server.ip}"
+        )
+
+    def update_servers(self):
+
+        for server in self.servers:
+
+            server.update_load()
+            self.scanner.scan(server)
+
+# -----------------------------
+# ANALYTICS SYSTEM
+# -----------------------------
+
+class Analytics:
+
+    @staticmethod
+    def average_cpu(servers):
+
+        return sum(
+            s.cpu for s in servers
+        ) / len(servers)
+
+    @staticmethod
+    def average_memory(servers):
+
+        return sum(
+            s.memory for s in servers
+        ) / len(servers)
+
+    @staticmethod
+    def compromised_servers(servers):
+
+        return [
+            s.ip for s in servers
+            if s.health < 50
+        ]
+
+# -----------------------------
+# GRAPH SYSTEM
+# -----------------------------
+
+class NetworkGraph:
+
+    def __init__(self, size=10):
+
+        self.graph = {
+            i: [] for i in range(size)
+        }
+
+        for i in range(size):
+
+            for j in range(size):
+
+                if i != j and random.random() > 0.5:
+                    self.graph[i].append(j)
+
+    def bfs(self, start):
+
+        visited = set()
+        queue = [start]
+
+        while queue:
+
+            node = queue.pop(0)
+
+            if node not in visited:
+
+                visited.add(node)
+
+                for neighbor in self.graph[node]:
+                    queue.append(neighbor)
+
+        return visited
+
+# -----------------------------
+# CLI APPLICATION
+# -----------------------------
+
+class App:
+
+    def run(self):
+
+        sim = CyberSimulation()
+
+        while True:
+
+            print("\n====== CYBER SECURITY LAB ======")
+            print("1. Simulate Packet Traffic")
+            print("2. Simulate DDoS Attack")
+            print("3. Simulate Malware")
+            print("4. Show Analytics")
+            print("5. Show IDS Alerts")
+            print("6. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+
+                for _ in range(100):
+                    sim.simulate_packet_flow()
+
+                print("Traffic simulated")
+
+            elif choice == "2":
+
+                sim.simulate_attack()
+                print("Attack simulated")
+
+            elif choice == "3":
+
+                sim.simulate_malware()
+                print("Malware executed")
+
+            elif choice == "4":
+
+                sim.update_servers()
+
+                print(
+                    "Average CPU:",
+                    Analytics.average_cpu(sim.servers)
+                )
+
+                print(
+                    "Average Memory:",
+                    Analytics.average_memory(sim.servers)
+                )
+
+                print(
+                    "Compromised Servers:",
+                    Analytics.compromised_servers(sim.servers)
+                )
+
+            elif choice == "5":
+
+                for alert in sim.ids.alerts[-10:]:
+                    print(alert)
+
+            elif choice == "6":
+                break
+
+            else:
+                print("Invalid option")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    App().run()
