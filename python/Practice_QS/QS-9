@@ -1,0 +1,507 @@
+import random
+import math
+import time
+from datetime import datetime
+
+# ============================================================
+# ADVANCED HOSPITAL MANAGEMENT & MEDICAL AI SIMULATOR
+# ============================================================
+
+# -----------------------------
+# UTILITIES
+# -----------------------------
+
+def current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def random_name():
+    first = [
+        "Amit", "Rahul", "Sneha", "Priya",
+        "Rohan", "Karan", "Anjali", "Vikas"
+    ]
+
+    last = [
+        "Sharma", "Patil", "Mehta",
+        "Joshi", "Kulkarni", "Singh"
+    ]
+
+    return random.choice(first) + " " + random.choice(last)
+
+# -----------------------------
+# PATIENT SYSTEM
+# -----------------------------
+
+class Patient:
+
+    def __init__(self, pid):
+
+        self.id = pid
+        self.name = random_name()
+        self.age = random.randint(1, 90)
+
+        self.temperature = round(
+            random.uniform(96, 104), 2
+        )
+
+        self.heart_rate = random.randint(60, 150)
+
+        self.bp = (
+            random.randint(90, 160),
+            random.randint(60, 100)
+        )
+
+        self.condition = random.choice([
+            "Normal",
+            "Critical",
+            "Stable",
+            "Observation"
+        ])
+
+        self.room = random.randint(100, 500)
+
+    def update(self):
+
+        self.temperature += random.uniform(-1, 1)
+        self.heart_rate += random.randint(-5, 5)
+
+# -----------------------------
+# DOCTOR SYSTEM
+# -----------------------------
+
+class Doctor:
+
+    def __init__(self, did):
+
+        self.id = did
+        self.name = random_name()
+
+        self.specialization = random.choice([
+            "Cardiology",
+            "Neurology",
+            "Orthopedics",
+            "Pediatrics",
+            "Radiology"
+        ])
+
+        self.experience = random.randint(1, 30)
+
+    def diagnose(self, patient):
+
+        if patient.temperature > 101:
+            return "Infection"
+
+        if patient.heart_rate > 120:
+            return "Cardiac Issue"
+
+        return "Normal"
+
+# -----------------------------
+# NURSE SYSTEM
+# -----------------------------
+
+class Nurse:
+
+    def __init__(self, nid):
+
+        self.id = nid
+        self.name = random_name()
+
+    def assist(self, patient):
+
+        patient.condition = "Stable"
+
+# -----------------------------
+# MEDICINE INVENTORY
+# -----------------------------
+
+class Medicine:
+
+    def __init__(self, name):
+
+        self.name = name
+        self.stock = random.randint(50, 500)
+
+    def use(self, qty):
+
+        if self.stock >= qty:
+            self.stock -= qty
+
+# -----------------------------
+# LAB TEST SYSTEM
+# -----------------------------
+
+class LabTest:
+
+    def __init__(self):
+
+        self.tests = [
+            "Blood Test",
+            "MRI",
+            "CT Scan",
+            "X-Ray",
+            "ECG"
+        ]
+
+    def perform(self):
+
+        return {
+            "test": random.choice(self.tests),
+            "result": random.choice([
+                "Normal",
+                "Abnormal",
+                "Further Analysis Required"
+            ])
+        }
+
+# -----------------------------
+# AMBULANCE SYSTEM
+# -----------------------------
+
+class Ambulance:
+
+    def __init__(self, aid):
+
+        self.id = aid
+        self.status = "Available"
+        self.distance = 0
+
+    def dispatch(self):
+
+        self.status = "Busy"
+        self.distance += random.randint(5, 50)
+
+    def reset(self):
+
+        self.status = "Available"
+
+# -----------------------------
+# AI DIAGNOSIS ENGINE
+# -----------------------------
+
+class MedicalAI:
+
+    def predict_risk(self, patient):
+
+        score = 0
+
+        if patient.temperature > 102:
+            score += 2
+
+        if patient.heart_rate > 130:
+            score += 3
+
+        if patient.bp[0] > 150:
+            score += 2
+
+        if score >= 5:
+            return "HIGH RISK"
+
+        if score >= 3:
+            return "MEDIUM RISK"
+
+        return "LOW RISK"
+
+# -----------------------------
+# BILLING SYSTEM
+# -----------------------------
+
+class Billing:
+
+    def generate(self, patient):
+
+        room_charge = random.randint(2000, 10000)
+        medicine_charge = random.randint(500, 5000)
+        doctor_fee = random.randint(1000, 3000)
+
+        total = (
+            room_charge +
+            medicine_charge +
+            doctor_fee
+        )
+
+        return {
+            "patient": patient.name,
+            "total": total
+        }
+
+# -----------------------------
+# HOSPITAL DATABASE
+# -----------------------------
+
+class Database:
+
+    def __init__(self):
+
+        self.records = []
+
+    def save(self, data):
+
+        self.records.append(data)
+
+# -----------------------------
+# SECURITY SYSTEM
+# -----------------------------
+
+class SecuritySystem:
+
+    def __init__(self):
+
+        self.alerts = []
+
+    def monitor(self):
+
+        if random.random() > 0.8:
+
+            self.alerts.append({
+                "time": current_time(),
+                "alert": random.choice([
+                    "Unauthorized Access",
+                    "Fire Alert",
+                    "Equipment Failure"
+                ])
+            })
+
+# -----------------------------
+# ICU SYSTEM
+# -----------------------------
+
+class ICU:
+
+    def __init__(self):
+
+        self.capacity = 20
+        self.patients = []
+
+    def admit(self, patient):
+
+        if len(self.patients) < self.capacity:
+            self.patients.append(patient)
+
+# -----------------------------
+# HOSPITAL CORE
+# -----------------------------
+
+class Hospital:
+
+    def __init__(self):
+
+        self.patients = [
+            Patient(i) for i in range(50)
+        ]
+
+        self.doctors = [
+            Doctor(i) for i in range(10)
+        ]
+
+        self.nurses = [
+            Nurse(i) for i in range(15)
+        ]
+
+        self.ambulances = [
+            Ambulance(i) for i in range(5)
+        ]
+
+        self.medicines = [
+            Medicine("Paracetamol"),
+            Medicine("Insulin"),
+            Medicine("Antibiotic")
+        ]
+
+        self.ai = MedicalAI()
+        self.billing = Billing()
+        self.database = Database()
+        self.security = SecuritySystem()
+        self.icu = ICU()
+
+        self.logs = []
+
+    def simulate(self):
+
+        for patient in self.patients:
+
+            patient.update()
+
+            doctor = random.choice(self.doctors)
+
+            diagnosis = doctor.diagnose(patient)
+
+            risk = self.ai.predict_risk(patient)
+
+            test = LabTest().perform()
+
+            if risk == "HIGH RISK":
+                self.icu.admit(patient)
+
+            bill = self.billing.generate(patient)
+
+            self.database.save({
+                "patient": patient.name,
+                "diagnosis": diagnosis,
+                "risk": risk,
+                "bill": bill
+            })
+
+            self.logs.append({
+                "time": current_time(),
+                "patient": patient.name,
+                "diagnosis": diagnosis,
+                "risk": risk
+            })
+
+        self.security.monitor()
+
+# -----------------------------
+# ANALYTICS ENGINE
+# -----------------------------
+
+class Analytics:
+
+    @staticmethod
+    def average_age(hospital):
+
+        return (
+            sum(p.age for p in hospital.patients)
+            / len(hospital.patients)
+        )
+
+    @staticmethod
+    def critical_patients(hospital):
+
+        return [
+            p.name for p in hospital.patients
+            if p.condition == "Critical"
+        ]
+
+    @staticmethod
+    def total_revenue(hospital):
+
+        revenue = 0
+
+        for record in hospital.database.records:
+            revenue += record["bill"]["total"]
+
+        return revenue
+
+# -----------------------------
+# GRAPH ENGINE
+# -----------------------------
+
+class HospitalGraph:
+
+    def __init__(self, size=10):
+
+        self.graph = {
+            i: [] for i in range(size)
+        }
+
+        for i in range(size):
+
+            for j in range(size):
+
+                if i != j and random.random() > 0.5:
+                    self.graph[i].append(j)
+
+    def dfs(self, node, visited=None):
+
+        if visited is None:
+            visited = set()
+
+        visited.add(node)
+
+        for neighbor in self.graph[node]:
+
+            if neighbor not in visited:
+                self.dfs(neighbor, visited)
+
+        return visited
+
+# -----------------------------
+# MATHEMATICAL ENGINE
+# -----------------------------
+
+class StatisticsEngine:
+
+    @staticmethod
+    def mean(values):
+
+        return sum(values) / len(values)
+
+    @staticmethod
+    def variance(values):
+
+        mean = StatisticsEngine.mean(values)
+
+        return (
+            sum(
+                (x - mean) ** 2 for x in values
+            ) / len(values)
+        )
+
+# -----------------------------
+# CLI APPLICATION
+# -----------------------------
+
+class App:
+
+    def run(self):
+
+        hospital = Hospital()
+
+        while True:
+
+            print("\n======= HOSPITAL SYSTEM =======")
+            print("1. Run Simulation")
+            print("2. Show Revenue")
+            print("3. Show ICU Patients")
+            print("4. Show Security Alerts")
+            print("5. Show Analytics")
+            print("6. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+
+                hospital.simulate()
+                print("Simulation completed")
+
+            elif choice == "2":
+
+                print(
+                    "Total Revenue:",
+                    Analytics.total_revenue(hospital)
+                )
+
+            elif choice == "3":
+
+                for patient in hospital.icu.patients:
+                    print(patient.name)
+
+            elif choice == "4":
+
+                for alert in hospital.security.alerts:
+                    print(alert)
+
+            elif choice == "5":
+
+                print(
+                    "Average Age:",
+                    Analytics.average_age(hospital)
+                )
+
+                print(
+                    "Critical Patients:",
+                    Analytics.critical_patients(hospital)
+                )
+
+            elif choice == "6":
+                break
+
+            else:
+                print("Invalid option")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    App().run()
