@@ -1,0 +1,539 @@
+import random
+import string
+import math
+from datetime import datetime
+
+# ============================================================
+# ADVANCED UNIVERSITY MANAGEMENT & AI LEARNING SYSTEM
+# ============================================================
+
+# -----------------------------
+# UTILITY FUNCTIONS
+# -----------------------------
+
+def current_time():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def random_name():
+
+    first = [
+        "Aman", "Rohit", "Priya",
+        "Sneha", "Kunal", "Pooja",
+        "Raj", "Vikas"
+    ]
+
+    last = [
+        "Patil", "Sharma", "Joshi",
+        "Kulkarni", "Singh", "Mehta"
+    ]
+
+    return random.choice(first) + " " + random.choice(last)
+
+def random_subject():
+
+    return random.choice([
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Data Structures",
+        "Cloud Computing",
+        "Cyber Security",
+        "Blockchain"
+    ])
+
+# -----------------------------
+# STUDENT SYSTEM
+# -----------------------------
+
+class Student:
+
+    def __init__(self, sid):
+
+        self.id = sid
+        self.name = random_name()
+        self.age = random.randint(18, 30)
+
+        self.attendance = random.randint(50, 100)
+
+        self.marks = {
+            random_subject(): random.randint(40, 100)
+            for _ in range(4)
+        }
+
+        self.cgpa = round(
+            random.uniform(5.0, 10.0), 2
+        )
+
+    def update_attendance(self):
+
+        self.attendance += random.randint(-2, 2)
+
+        self.attendance = max(
+            0,
+            min(100, self.attendance)
+        )
+
+    def average_marks(self):
+
+        return (
+            sum(self.marks.values())
+            / len(self.marks)
+        )
+
+# -----------------------------
+# PROFESSOR SYSTEM
+# -----------------------------
+
+class Professor:
+
+    def __init__(self, pid):
+
+        self.id = pid
+        self.name = random_name()
+        self.subject = random_subject()
+
+        self.experience = random.randint(1, 35)
+
+    def evaluate(self, student):
+
+        avg = student.average_marks()
+
+        if avg > 85:
+            return "Excellent"
+
+        elif avg > 70:
+            return "Good"
+
+        elif avg > 50:
+            return "Average"
+
+        return "Poor"
+
+# -----------------------------
+# COURSE SYSTEM
+# -----------------------------
+
+class Course:
+
+    def __init__(self, cid):
+
+        self.id = cid
+        self.name = random_subject()
+        self.credits = random.randint(2, 5)
+
+        self.students = []
+
+    def enroll(self, student):
+
+        self.students.append(student)
+
+# -----------------------------
+# LIBRARY SYSTEM
+# -----------------------------
+
+class Book:
+
+    def __init__(self):
+
+        self.title = ''.join(
+            random.choice(string.ascii_uppercase)
+            for _ in range(6)
+        )
+
+        self.available = True
+
+class Library:
+
+    def __init__(self):
+
+        self.books = [
+            Book() for _ in range(100)
+        ]
+
+    def issue_book(self):
+
+        available_books = [
+            b for b in self.books
+            if b.available
+        ]
+
+        if available_books:
+
+            book = random.choice(available_books)
+            book.available = False
+
+            return book.title
+
+# -----------------------------
+# HOSTEL SYSTEM
+# -----------------------------
+
+class Hostel:
+
+    def __init__(self):
+
+        self.rooms = {
+            i: None for i in range(1, 101)
+        }
+
+    def allocate(self, student):
+
+        for room in self.rooms:
+
+            if self.rooms[room] is None:
+
+                self.rooms[room] = student.name
+                return room
+
+# -----------------------------
+# EXAMINATION SYSTEM
+# -----------------------------
+
+class Examination:
+
+    def conduct_exam(self, student):
+
+        result = {}
+
+        for subject in student.marks:
+
+            score = random.randint(35, 100)
+            result[subject] = score
+
+        return result
+
+# -----------------------------
+# AI LEARNING ANALYTICS
+# -----------------------------
+
+class LearningAI:
+
+    def performance_prediction(self, student):
+
+        score = (
+            student.average_marks()
+            + student.attendance
+        ) / 2
+
+        if score > 85:
+            return "TOPPER"
+
+        elif score > 70:
+            return "ABOVE AVERAGE"
+
+        elif score > 50:
+            return "AVERAGE"
+
+        return "AT RISK"
+
+# -----------------------------
+# PLACEMENT SYSTEM
+# -----------------------------
+
+class Company:
+
+    def __init__(self):
+
+        self.name = random.choice([
+            "TCS",
+            "Infosys",
+            "Google",
+            "Microsoft",
+            "Amazon"
+        ])
+
+        self.package = random.randint(3, 40)
+
+class PlacementCell:
+
+    def __init__(self):
+
+        self.placed_students = []
+
+    def place(self, student):
+
+        company = Company()
+
+        self.placed_students.append({
+            "student": student.name,
+            "company": company.name,
+            "package": company.package
+        })
+
+# -----------------------------
+# FEE MANAGEMENT
+# -----------------------------
+
+class FeeSystem:
+
+    def generate_fee(self):
+
+        tuition = random.randint(50000, 150000)
+        hostel = random.randint(20000, 80000)
+
+        return tuition + hostel
+
+# -----------------------------
+# SECURITY SYSTEM
+# -----------------------------
+
+class Security:
+
+    def __init__(self):
+
+        self.alerts = []
+
+    def monitor(self):
+
+        if random.random() > 0.8:
+
+            self.alerts.append({
+                "time": current_time(),
+                "alert": random.choice([
+                    "Unauthorized Entry",
+                    "Lab Equipment Failure",
+                    "Network Breach"
+                ])
+            })
+
+# -----------------------------
+# UNIVERSITY CORE
+# -----------------------------
+
+class University:
+
+    def __init__(self):
+
+        self.students = [
+            Student(i) for i in range(100)
+        ]
+
+        self.professors = [
+            Professor(i) for i in range(20)
+        ]
+
+        self.courses = [
+            Course(i) for i in range(10)
+        ]
+
+        self.library = Library()
+        self.hostel = Hostel()
+
+        self.exam = Examination()
+
+        self.ai = LearningAI()
+
+        self.placement = PlacementCell()
+
+        self.fee_system = FeeSystem()
+
+        self.security = Security()
+
+        self.logs = []
+
+    def simulate(self):
+
+        for student in self.students:
+
+            student.update_attendance()
+
+            professor = random.choice(
+                self.professors
+            )
+
+            evaluation = professor.evaluate(student)
+
+            prediction = self.ai.performance_prediction(
+                student
+            )
+
+            exam_result = self.exam.conduct_exam(
+                student
+            )
+
+            fee = self.fee_system.generate_fee()
+
+            if student.cgpa > 7.5:
+                self.placement.place(student)
+
+            room = self.hostel.allocate(student)
+
+            book = self.library.issue_book()
+
+            self.logs.append({
+                "student": student.name,
+                "evaluation": evaluation,
+                "prediction": prediction,
+                "room": room,
+                "book": book,
+                "fee": fee
+            })
+
+        self.security.monitor()
+
+# -----------------------------
+# ANALYTICS ENGINE
+# -----------------------------
+
+class Analytics:
+
+    @staticmethod
+    def average_cgpa(university):
+
+        return (
+            sum(
+                s.cgpa for s in university.students
+            ) / len(university.students)
+        )
+
+    @staticmethod
+    def toppers(university):
+
+        return [
+            s.name for s in university.students
+            if s.cgpa > 9
+        ]
+
+    @staticmethod
+    def placement_count(university):
+
+        return len(
+            university.placement.placed_students
+        )
+
+# -----------------------------
+# GRAPH ENGINE
+# -----------------------------
+
+class CampusGraph:
+
+    def __init__(self, size=10):
+
+        self.graph = {
+            i: [] for i in range(size)
+        }
+
+        for i in range(size):
+
+            for j in range(size):
+
+                if i != j and random.random() > 0.5:
+                    self.graph[i].append(j)
+
+    def bfs(self, start):
+
+        visited = set()
+        queue = [start]
+
+        while queue:
+
+            node = queue.pop(0)
+
+            if node not in visited:
+
+                visited.add(node)
+
+                for neighbor in self.graph[node]:
+                    queue.append(neighbor)
+
+        return visited
+
+# -----------------------------
+# MATHEMATICAL ENGINE
+# -----------------------------
+
+class Statistics:
+
+    @staticmethod
+    def mean(values):
+
+        return sum(values) / len(values)
+
+    @staticmethod
+    def std(values):
+
+        mean = Statistics.mean(values)
+
+        variance = (
+            sum(
+                (x - mean) ** 2
+                for x in values
+            ) / len(values)
+        )
+
+        return math.sqrt(variance)
+
+# -----------------------------
+# CLI APPLICATION
+# -----------------------------
+
+class App:
+
+    def run(self):
+
+        university = University()
+
+        while True:
+
+            print("\n======= UNIVERSITY SYSTEM =======")
+            print("1. Run Simulation")
+            print("2. Show Average CGPA")
+            print("3. Show Toppers")
+            print("4. Show Placements")
+            print("5. Show Security Alerts")
+            print("6. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+
+                university.simulate()
+
+                print("Simulation completed")
+
+            elif choice == "2":
+
+                print(
+                    "Average CGPA:",
+                    Analytics.average_cgpa(
+                        university
+                    )
+                )
+
+            elif choice == "3":
+
+                print(
+                    Analytics.toppers(
+                        university
+                    )
+                )
+
+            elif choice == "4":
+
+                print(
+                    "Placement Count:",
+                    Analytics.placement_count(
+                        university
+                    )
+                )
+
+                for p in university.placement.placed_students[:10]:
+                    print(p)
+
+            elif choice == "5":
+
+                for alert in university.security.alerts:
+                    print(alert)
+
+            elif choice == "6":
+                break
+
+            else:
+                print("Invalid choice")
+
+# -----------------------------
+# MAIN
+# -----------------------------
+
+if __name__ == "__main__":
+    App().run()
+    
